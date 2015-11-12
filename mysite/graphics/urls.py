@@ -6,5 +6,6 @@ from . import views
 urlpatterns = [
     #url(r'^$', views.index, name='index'),
     url(r'^request/', views.GraphicRequest, name='index'),
-    url(r'^graph/', static('grap_sample.html'), name="graph" ),
+    url(r'^graph/', views.GraphicRequest, name="graph" ),
+    url(r'^draw_by_name/', views.returnD3JS, name="graphByName" ),
 ]

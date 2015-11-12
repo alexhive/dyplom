@@ -2,12 +2,20 @@
 from django.http import HttpResponse
 from django.views.generic import View
 from django.shortcuts import get_object_or_404, render
+from django.template import RequestContext
 
 import froms
 import mysite.models as models
 
 def index(request):
 	return HttpResponse("Hello, world. You're at the polls index.")
+
+def returnD3JS(request):
+	link = "http://127.0.0.1:8000/api/graph_from_name/?name={0}".format(request.GET["name"])
+	print(link)
+	return render(request, "grap_sample.html", {
+		'url' : link,
+		}, context_instance=RequestContext(request))
 
 def GraphicRequest(request):
 	print "metod: ", request.method
@@ -26,8 +34,6 @@ def GraphicRequest(request):
 		# get winners with purchase
 		w_list = models.Winner.objects.filter( purchase__in = purchase_list )
 		print "list objects winners count {0}".format(len(w_list))
-
-
 
 		return redirect('graph')
 
