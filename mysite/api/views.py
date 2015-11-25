@@ -7,7 +7,7 @@ import json
 import mysite.models as models
 import serializers
 import json
-
+from utils import Pointer
 
 @api_view(['GET',])
 def RESTUser(req):
@@ -42,7 +42,6 @@ def RESTPurchase(req):
 		return Response(res)
 
 
-
 @api_view(['GET',])
 def RESTWinner(req):
 	"""
@@ -59,43 +58,100 @@ def RESTWinner(req):
 
 		return Response(res)
 
+def findPoint(obj, pointers):
+	for p in pointers:
+		if obj == p.object:
+			return p.position
+
+	return -1
+
+def getd3jsjsonForUser( userdata_list, purchase_list, w_list ):
+	response = { "nodes" : [], "links" : [] }
+	pointers = []
+
+	if 0 != len(userdata_list):
+		response["nodes"].append( {"atom": userdata_list[0].name, "size": 30} )
+
+	for node in purchase_list:
+		response["links"].append( { "bond" : 1, "source" : len(response["nodes"]), "target" : 0 } )
+		response["nodes"].append( {"atom": node.goods_name, "size": 15} )
+
+	for node in w_list:
+		pos = findPoint(node.winner_name, pointers)
+		if -1 == pos:
+			pos = len(response["nodes"])
+			response["nodes"].append( {"atom": node.winner_name, "size": 5} )
+			
+			pointers.append( Pointer( node.winner_name, pos ) )
+
+		response["links"].append( { "bond" : 1, "source" : len(userdata_list) + purchase_list.index(node.purchase), "target" : pos } )
+		
+	return response
+
+
+def getd3jsjsonForWinner( userdata_list, purchase_list, w_list ):
+	response = { "nodes" : [], "links" : [] }
+	pointers = []
+
+	response["nodes"].append( {"atom": w_list[0].winner_name, "size": 30} )
+	for node in w_list:
+		w_pos = len(response["nodes"])
+		response["nodes"].append( {"atom": node.purchase.goods_name, "size": 3} )
+		response["links"].append( { "bond" : 1, "source" : 0, "target" : w_pos } )
+		pos = findPoint(node.purchase.user, pointers)
+		if -1 == pos:
+			response["nodes"].append( {"atom": node.purchase.user.name, "size": 30} )
+			pos = w_pos + 1
+			pointers.append( Pointer( node.purchase.user, pos ) )
+		response["links"].append( { "bond" : 1, "source" : w_pos,  "target" : pos } )
+
+	return response
+
+
 @api_view(['GET',])
 def UserdataToWinner(req):
-	response = { "nodes" : [], "links" : [] }
-
-	# get user list with name
-	l = models.Userdata.objects.filter( name = req.GET["name"] )
-
-	if 0 == len(l):
-		return HttpResponse(json.dumps(response), content_type="application/json")
-
-	user_obj_id = l[0].user_id
-	parent_object = models.UserdataSort.objects.filter( userdata_id = user_obj_id )
-	parent_object_id = parent_object[0].parent_id
-
-	same_objects = models.UserdataSort.objects.filter( parent_id = parent_object_id )
-	same_objects_id = []
-	for o in same_objects:
-		same_objects_id.append(o.id)
-
-	print "list objects user count {0}".format(len(l))
+	userdata_id = [ x.winner_id for x in list(models.Winner.objects.filter( name = req.GET["name"] )) ]
+	userdata_id_parent_sort = [ x.parent_id for x in list( models.UserdataSort.objects.filter( id__in = userdata_id ) ) ]
+	userdata_id_sort = [ x.id for x in list( models.UserdataSort.objects.filter( parent_id__in = userdata_id_parent_sort ) ) ]
+	print("userdata_id", userdata_id)
+	print("userdata_id_parent_sort", userdata_id_parent_sort)
+	print("userdata_id_sort", userdata_id_sort)
 
 	# get purchase with name
-	purchase_list = models.Purchase.objects.filter( user__in = same_objects_id )
+	purchase_list = list(models.Purchase.objects.filter( user__in = userdata_id_sort ))
 	print "list objects purchase count {0}".format(len(purchase_list))
 
 	# get winners with purchase
-	w_list = models.Winner.objects.filter( purchase__in = purchase_list )
+	w_list = list(models.Winner.objects.filter( purchase__in = purchase_list ))
 	print "list objects winners count {0}".format(len(w_list))
 
-	
-	for node in l:
-		response["nodes"].append( {"atom": node.name, "size": 20} )
+	response = HttpResponse(json.dumps(getd3jsjsonForUser( userdata_list, purchase_list, w_list )), content_type="application/json")
+	response["Access-Control-Allow-Origin"] = "*"
+	return response
 
-	for node in purchase_list:
-		response["nodes"].append( {"atom": node.goods_name, "size": 10} )
+@api_view(['GET',])
+def WinnerToUser(req):
+	winner_id = [ x.winner_id for x in list(models.Winner.objects.filter( winner_name = req.GET["name"] )) ]
+	winner_id_parent_sort = [ x.parent_id for x in list( models.WinnerSort.objects.filter( id__in = winner_id ) ) ]
+	winner_id_sort = [ x.id for x in list( models.WinnerSort.objects.filter( parent_id__in = winner_id_parent_sort ) ) ]
+	print("winner_id = ", len(winner_id))
+	print("winner_id_parent_sort", len(winner_id_parent_sort))
+	print("winner_id_sort", len(winner_id_sort))
 
+	# get winners with purchase
+	w_list = list(models.Winner.objects.filter( winner_id__in = winner_id_sort ))
+	print "list objects winners count {0}".format(len(w_list))
+
+	purchase_list = []
 	for node in w_list:
-		response["nodes"].append( {"atom": node.winner_name, "size": 5} )
+		if None != node.purchase:
+			purchase_list.append( node.purchase )
+	print "list objects purchase count {0}".format(len(w_list))
 
-	return HttpResponse(json.dumps(response), content_type="application/json")
+	userdata_list = []
+	for node in purchase_list:
+		if None != node.user:
+			userdata_list.append( node.user )
+	print "list objects user count {0}".format(len(userdata_list))
+
+	return HttpResponse(json.dumps(getd3jsjsonForWinner( userdata_list, purchase_list, w_list )), content_type="application/json")

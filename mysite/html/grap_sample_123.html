@@ -28,11 +28,15 @@ result is here
 <body>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="d3/d3.min.js"></script>
 
 <script type="text/javascript">
 
-console.log ("start");
+/*
+$.get('http://127.0.0.1:8000/api/winnerToUser/?name=ТОВ "СКД"', function(data, status){
+        alert("Data: " + data + "\nStatus: " + status);
+    });
+*/
 
 $.ajax({
     type: "GET",
@@ -42,8 +46,7 @@ $.ajax({
     async: true,
     data: "", 
     success: function (data) {
-    	console.log ("ajax success");
-		draw_histogram(data);
+			draw_histogram(data);
     },
     error: function (result) {
     	console.log("AJAX error")

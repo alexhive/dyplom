@@ -368,7 +368,7 @@ class Userdata(models.Model):
 class UserdataSort(models.Model):
     id = models.IntegerField(null=True, blank=True)
     parent_id = models.IntegerField(null=True, blank=True)
-    userdata_id = models.IntegerField(null=True, blank=True)
+    name = models.CharField(max_length=512, blank=True)
     class Meta:
         db_table = 'userdata_sort'
 
@@ -405,7 +405,7 @@ class WinnerPurchaseMapping(models.Model):
 class WinnerSort(models.Model):
     id = models.IntegerField(null=True, blank=True)
     parent_id = models.IntegerField(null=True, blank=True)
-    winner_id = models.IntegerField(null=True, blank=True)
+    name = models.CharField(max_length=1024, blank=True)
     class Meta:
         db_table = 'winner_sort'
 
