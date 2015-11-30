@@ -37,12 +37,13 @@ console.log ("start");
 $.ajax({
     type: "GET",
     contentType: "application/json; charset=utf-8",
-    url: 'http://127.0.0.1:8000/api/winnerToUser/?name=ТОВ "СКД"',
+    url: '{{ url }}',
     dataType: 'json',
     async: true,
     data: "", 
     success: function (data) {
     	console.log ("ajax success");
+    	console.log (data.nodes.length);
 		draw_histogram(data);
     },
     error: function (result) {
@@ -52,6 +53,7 @@ $.ajax({
 })
 
 function draw_histogram(graph) {
+	console.log (graph);
 	var width = 1000,
 	    height = 700;
 

@@ -10,9 +10,19 @@ import mysite.models as models
 def index(request):
 	return HttpResponse("Hello, world. You're at the polls index.")
 
-def returnD3JS(request):
-	link = "http://127.0.0.1:8000/api/graph_from_name/?name={0}".format(request.GET["name"])
-	print(link)
+def returnForUserD3JS(request):
+	print(request.GET["name"])
+	link = "http://127.0.0.1:8000/api/userToWinner/?name=" + request.GET["name"]
+	print("link = ", link)
+	print("name = ", request.GET["name"])
+	return render(request, "grap_sample.html", {
+		'url' : link,
+		}, context_instance=RequestContext(request))
+
+def returnForwinnerD3JS(request):
+	link = "http://127.0.0.1:8000/api/winnerToUser/?name=" + request.GET["name"]
+	print(request.GET["name"])
+	print("link = ", link)
 	return render(request, "grap_sample.html", {
 		'url' : link,
 		}, context_instance=RequestContext(request))
