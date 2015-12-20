@@ -140,6 +140,8 @@ def UserdataToWinner(req):
 
 @api_view(['GET',])
 def WinnerToUser(req):
+	print(req.GET["name"], len(req.GET["name"]))
+	
 	winner_id = [ x.winner_id for x in list(models.Winner.objects.filter( winner_name = req.GET["name"] )) ]
 	winner_id_parent_sort = [ x.parent_id for x in list( models.WinnerSort.objects.filter( id__in = winner_id ) ) ]
 	winner_id_sort = [ x.id for x in list( models.WinnerSort.objects.filter( parent_id__in = winner_id_parent_sort ) ) ]
