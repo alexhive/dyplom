@@ -19,6 +19,7 @@ class PostForm(forms.Form):
         super(PostForm, self).__init__(*args, **kwargs)
         self.fields["user"].initial = user
         self.fields["winner"].initial = winner
+        self.fields["year"].initial = year
 
 def returnForUserD3JS(request):
 	print "metod: ", request.method
@@ -55,13 +56,13 @@ def GraphicRequest(request):
 
 		link = ""
 		if "" != winnerName and "" == userName:
-			link = "http://127.0.0.1:8000/api/winnerToUser/?name=" + winnerName
+			link = u"http://127.0.0.1:8000/api/winnerToUser/?name={0}&year={1}".format(winnerName, year)
 		elif "" == winnerName and "" != userName:
-			link = "http://127.0.0.1:8000/api/userToWinner/?name=" + userName
+			link = u"http://127.0.0.1:8000/api/userToWinner/?name={0}&year={1}".format(userName, year)
 		elif "" != winnerName and "" != userName:
-			link = u"http://127.0.0.1:8000/api/winnerToConcreteUser/?user={0}&winner={1}".format(userName, winnerName)
+			link = u"http://127.0.0.1:8000/api/winnerToConcreteUser/?user={0}&winner={1}&year={2}".format(userName, winnerName, year)
 
-		form = PostForm(user = userName, winner = winnerName)
+		form = PostForm(user = userName, winner = winnerName, year = year)
 		return render(request, 'grap_sample.html', {'form': form, 'url': link})
 
 	return HttpResponse("!!!")

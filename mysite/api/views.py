@@ -114,9 +114,23 @@ def getd3jsjsonForWinner( userdata_list, purchase_list, w_list ):
 
 	return response
 
+def suitableYear(year, purchaseYear):
+	if None == year:
+		return True
+
+	if year == purchaseYear:
+		return True
+	else:
+		return False
 
 @api_view(['GET',])
 def UserdataToWinner(req):
+	try:
+		year = int(req.GET["year"]) if "year" in req.GET.keys() else None
+	except:
+		year = None
+	print("YEAR = ", year)
+
 	userdata_id = [ x.user_id for x in list(models.Userdata.objects.filter( name = req.GET["name"] )) ]
 	userdata_id_parent_sort = [ x.parent_id for x in list( models.UserdataSort.objects.filter( id__in = userdata_id ) ) ]
 	userdata_id_sort = [ x.id for x in list( models.UserdataSort.objects.filter( parent_id__in = userdata_id_parent_sort ) ) ]
@@ -125,22 +139,38 @@ def UserdataToWinner(req):
 	print("userdata_id_sort", len(userdata_id_sort))
 
 	# get purchase with name
-	userdata_list = list(models.Userdata.objects.filter( user_id__in = userdata_id_sort ))
-	print "list objects user count {0}".format(len(userdata_list))
+	u_list = list(models.Userdata.objects.filter( user_id__in = userdata_id_sort ))
+	print "list objects user count {0}".format(len(u_list))
 
 	# get purchase with name
-	purchase_list = list(models.Purchase.objects.filter( user__in = userdata_list ))
-	print "list objects purchase count {0}".format(len(purchase_list))
+	p_list = list(models.Purchase.objects.filter( user__in = u_list ))
+	print "list objects purchase count {0}".format(len(p_list))
 
 	# get winners with purchase
-	w_list = list(models.Winner.objects.filter( purchase__in = purchase_list ))
+	w_list = list(models.Winner.objects.filter( purchase__in = p_list ))
 	print "list objects winners count {0}".format(len(w_list))
 
-	return HttpResponse(json.dumps(getd3jsjsonForUser( userdata_list, purchase_list, w_list )), content_type="application/json")
+	winner_list = []
+	userdata_list = []
+	purchase_list = []
+	for node in w_list:
+		if None != node.purchase:
+			if suitableYear(year, node.purchase.purchase_publicated.year):
+				if None != node.purchase.user:
+					winner_list.append( node )
+					userdata_list.append( node.purchase.user )
+					purchase_list.append( node.purchase )
+
+	return HttpResponse(json.dumps(getd3jsjsonForUser( userdata_list, purchase_list, winner_list )), content_type="application/json")
 
 @api_view(['GET',])
 def WinnerToUser(req):
 	print(req.GET["name"], len(req.GET["name"]))
+	try:
+		year = int(req.GET["year"]) if "year" in req.GET.keys() else None
+	except:
+		year = None
+	print("YEAR = ", year)
 	
 	winner_id = [ x.winner_id for x in list(models.Winner.objects.filter( winner_name = req.GET["name"] )) ]
 	winner_id_parent_sort = [ x.parent_id for x in list( models.WinnerSort.objects.filter( id__in = winner_id ) ) ]
@@ -153,22 +183,29 @@ def WinnerToUser(req):
 	w_list = list(models.Winner.objects.filter( winner_id__in = winner_id_sort ))
 	print "list objects winners count {0}".format(len(w_list))
 
+	winner_list = []
+	userdata_list = []
 	purchase_list = []
 	for node in w_list:
 		if None != node.purchase:
-			purchase_list.append( node.purchase )
-	print "list objects purchase count {0}".format(len(w_list))
+			if suitableYear(year, node.purchase.purchase_publicated.year):
+				if None != node.purchase.user:
+					winner_list.append( node )
+					userdata_list.append( node.purchase.user )
+					purchase_list.append( node.purchase )
 
-	userdata_list = []
-	for node in purchase_list:
-		if None != node.user:
-			userdata_list.append( node.user )
+	print "list objects purchase count {0}".format(len(winner_list))
 	print "list objects user count {0}".format(len(userdata_list))
 
-	return HttpResponse(json.dumps(getd3jsjsonForWinner( userdata_list, purchase_list, w_list )), content_type="application/json")
+	return HttpResponse(json.dumps(getd3jsjsonForWinner( userdata_list, purchase_list, winner_list )), content_type="application/json")
 
 @api_view(['GET',])
 def WinnerToConcreteUser(req):
+	try:
+		year = int(req.GET["year"]) if "year" in req.GET.keys() else None
+	except:
+		year = None
+	print("YEAR = ", year)
 	winer_name = req.GET["winner"]
 	user_name = req.GET["user"]
 	
@@ -188,10 +225,10 @@ def WinnerToConcreteUser(req):
 	winner_list = []
 	for node in w_list:
 		if None != node.purchase:
-			if None != node.purchase.user:
-				if node.purchase.user.name == user_name:
+			if suitableYear(year, node.purchase.purchase_publicated.year):
+				if None != node.purchase.user:
+					winner_list.append( node )
 					userdata_list.append( node.purchase.user )
 					purchase_list.append( node.purchase )
-					winner_list.append( node )
 
 	return HttpResponse(json.dumps(getd3jsjsonForWinner( userdata_list, purchase_list, winner_list )), content_type="application/json")
