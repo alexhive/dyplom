@@ -27,6 +27,12 @@ result is here
 </style>
 <body>
 
+<form method="POST" action="">
+    {% csrf_token %}
+    {{ form }}
+    <input type="submit" value="Submit" />
+</form>
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
 
@@ -37,7 +43,7 @@ console.log ("start");
 $.ajax({
     type: "GET",
     contentType: "application/json; charset=utf-8",
-    url: '{{ url }}',
+    url: '{{url|safe}}',
     dataType: 'json',
     async: true,
     data: "", 

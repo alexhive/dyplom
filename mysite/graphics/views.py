@@ -5,14 +5,20 @@ from django.shortcuts import get_object_or_404, render
 from django.template import RequestContext
 from django import forms
 
-import froms
 import mysite.models as models
 
 def index(request):
 	return HttpResponse("Hello, world. You're at the polls index.")
  
 class PostForm(forms.Form):
-    name = forms.CharField(max_length=256)
+    user = forms.CharField(max_length=256)
+    year = forms.IntegerField()
+    winner = forms.CharField(max_length=256)
+
+    def __init__(self, user = "", year = 2015, winner = "", *args, **kwargs):
+        super(PostForm, self).__init__(*args, **kwargs)
+        self.fields["user"].initial = user
+        self.fields["winner"].initial = winner
 
 def returnForUserD3JS(request):
 	print "metod: ", request.method
@@ -41,21 +47,21 @@ def returnForwinnerD3JS(request):
 def GraphicRequest(request):
 	print "metod: ", request.method
 	if "GET" == request.method:
-		return render(request, 'name.html', {'form': froms.NameForm()})
+		return render(request, 'grap_sample.html', {'form': PostForm})
 	elif "POST" == request.method:
-		
-		# get user list with name
-		l = models.Userdata.objects.filter( name = request.POST["name"] )
-		print "list objects user count {0}".format(len(l))
+		winnerName =  request.POST["winner"]
+		userName = request.POST["user"]
+		year = request.POST["year"]
 
-		# get purchase with name
-		purchase_list = models.Purchase.objects.filter( user__in = l )
-		print "list objects purchase count {0}".format(len(purchase_list))
+		link = ""
+		if "" != winnerName and "" == userName:
+			link = "http://127.0.0.1:8000/api/winnerToUser/?name=" + winnerName
+		elif "" == winnerName and "" != userName:
+			link = "http://127.0.0.1:8000/api/userToWinner/?name=" + userName
+		elif "" != winnerName and "" != userName:
+			link = u"http://127.0.0.1:8000/api/winnerToConcreteUser/?user={0}&winner={1}".format(userName, winnerName)
 
-		# get winners with purchase
-		w_list = models.Winner.objects.filter( purchase__in = purchase_list )
-		print "list objects winners count {0}".format(len(w_list))
-
-		return redirect('graph')
+		form = PostForm(user = userName, winner = winnerName)
+		return render(request, 'grap_sample.html', {'form': form, 'url': link})
 
 	return HttpResponse("!!!")

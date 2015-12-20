@@ -30,6 +30,12 @@ result is here
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script src="d3/d3.min.js"></script>
 
+<form method="POST" action="">
+    {% csrf_token %}
+    {{ form }}
+    <input type="submit" value="Submit" />
+</form>
+
 <script type="text/javascript">
 
 /*

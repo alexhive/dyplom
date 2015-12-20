@@ -166,3 +166,32 @@ def WinnerToUser(req):
 	print "list objects user count {0}".format(len(userdata_list))
 
 	return HttpResponse(json.dumps(getd3jsjsonForWinner( userdata_list, purchase_list, w_list )), content_type="application/json")
+
+@api_view(['GET',])
+def WinnerToConcreteUser(req):
+	winer_name = req.GET["winner"]
+	user_name = req.GET["user"]
+	
+	winner_id = [ x.winner_id for x in list(models.Winner.objects.filter( winner_name = winer_name )) ]
+	winner_id_parent_sort = [ x.parent_id for x in list( models.WinnerSort.objects.filter( id__in = winner_id ) ) ]
+	winner_id_sort = [ x.id for x in list( models.WinnerSort.objects.filter( parent_id__in = winner_id_parent_sort ) ) ]
+	print("winner_id = ", len(winner_id))
+	print("winner_id_parent_sort", len(winner_id_parent_sort))
+	print("winner_id_sort", len(winner_id_sort))
+
+	# get winners with purchase
+	w_list = list(models.Winner.objects.filter( winner_id__in = winner_id_sort ))
+	print "list objects winners count {0}".format(len(w_list))
+
+	purchase_list = []
+	userdata_list = []
+	winner_list = []
+	for node in w_list:
+		if None != node.purchase:
+			if None != node.purchase.user:
+				if node.purchase.user.name == user_name:
+					userdata_list.append( node.purchase.user )
+					purchase_list.append( node.purchase )
+					winner_list.append( node )
+
+	return HttpResponse(json.dumps(getd3jsjsonForWinner( userdata_list, purchase_list, winner_list )), content_type="application/json")

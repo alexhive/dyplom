@@ -11,4 +11,5 @@ urlpatterns = [
     url(r'^graph_from_name/', views.UserdataToWinner),
     url(r'^userToWinner/', views.UserdataToWinner, name="UserdataToWinner" ),
     url(r'^winnerToUser/', views.WinnerToUser, name="WinnerToUser" ),
+    url(r'^winnerToConcreteUser/', views.WinnerToConcreteUser, name="WinnerToUser" ),
 ]
