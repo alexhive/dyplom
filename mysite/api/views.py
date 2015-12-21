@@ -97,7 +97,10 @@ def suitableYear(year, purchaseYear):
 	if None == year:
 		return True
 
-	if year == purchaseYear:
+	if None == purchaseYear:
+		return False
+
+	if year == purchaseYear.year:
 		return True
 	else:
 		return False
@@ -130,15 +133,11 @@ def UserdataToWinner(req):
 	print "list objects winners count {0}".format(len(w_list))
 
 	winner_list = []
-	userdata_list = []
-	purchase_list = []
 	for node in w_list:
 		if None != node.purchase:
 			if suitableYear(year, node.purchase.purchase_publicated.year):
 				if None != node.purchase.user:
 					winner_list.append( node )
-					userdata_list.append( node.purchase.user )
-					purchase_list.append( node.purchase )
 
 	return HttpResponse(json.dumps(ceateResponse( winner_list )), content_type="application/json")
 
@@ -163,18 +162,11 @@ def WinnerToUser(req):
 	print "list objects winners count {0}".format(len(w_list))
 
 	winner_list = []
-	userdata_list = []
-	purchase_list = []
 	for node in w_list:
 		if None != node.purchase:
 			if suitableYear(year, node.purchase.purchase_publicated.year):
 				if None != node.purchase.user:
 					winner_list.append( node )
-					userdata_list.append( node.purchase.user )
-					purchase_list.append( node.purchase )
-
-	print "list objects purchase count {0}".format(len(winner_list))
-	print "list objects user count {0}".format(len(userdata_list))
 
 	return HttpResponse(json.dumps(ceateResponse( winner_list )), content_type="application/json")
 
@@ -199,16 +191,13 @@ def WinnerToConcreteUser(req):
 	w_list = list(models.Winner.objects.filter( winner_id__in = winner_id_sort ))
 	print "list objects winners count {0}".format(len(w_list))
 
-	purchase_list = []
-	userdata_list = []
 	winner_list = []
 	for node in w_list:
 		if None != node.purchase:
-			if suitableYear(year, node.purchase.purchase_publicated.year):
+			if suitableYear(year, node.purchase.purchase_publicated):
 				if None != node.purchase.user:
-					winner_list.append( node )
-					userdata_list.append( node.purchase.user )
-					purchase_list.append( node.purchase )
+					if user_name in node.purchase.user.name:
+						winner_list.append( node )
 
 	return HttpResponse(json.dumps(ceateResponse( winner_list )), content_type="application/json")
 
