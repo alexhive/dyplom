@@ -34,10 +34,60 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 
 <script type="text/javascript">
 
 console.log ("start");
+
+// autocomlete for user
+$( "#id_user" ).autocomplete({
+  source: function(request, response) {
+  			console.log ("autocomplete");
+  			console.log ( $('#id_user').val() );
+            $.ajax({
+                url: "http://127.0.0.1:8000/api/userAutocomplete/",
+                dataType: "json",
+                type: "get",
+                data: {
+                    name: $('#id_user').val()
+                },
+                success: function(data) {
+                	console.log ( data );
+                	response(data)
+                }
+            })
+        },
+    minLength: 0,
+    scroll: true
+}).focus(function() {
+    $(this).autocomplete("search", "");
+});
+
+// autocomlete for winner
+$( "#id_winner" ).autocomplete({
+  source: function(request, response) {
+  			console.log ("autocomplete");
+  			console.log ( $('#id_winner').val() );
+            $.ajax({
+                url: "http://127.0.0.1:8000/api/winnerAutocomplete/",
+                dataType: "json",
+                type: "get",
+                data: {
+                    name: $('#id_winner').val()
+                },
+                success: function(data) {
+                	console.log ( data );
+                	response(data)
+                }
+            })
+        },
+    minLength: 0,
+    scroll: true
+}).focus(function() {
+    $(this).autocomplete("search", "");
+});
 
 $.ajax({
     type: "GET",
@@ -95,18 +145,24 @@ function draw_histogram(graph) {
 
 	var node = svg.selectAll(".node")
 	  .data(graph.nodes)
-	.enter().append("g")
+	  .enter().append("g")
 	  .attr("class", "node")
 	  .call(force.drag);
 
 	node.append("circle")
 	  .attr("r", function(d) { return radius(d.size); })
-	  .style("fill", function(d) { return color(d.atom); });
+	  .style("fill", function (d) { return d.color; });
 
-	node.append("text")
-	  .attr("dy", ".35em")
-	  .attr("text-anchor", "middle")
-	  .text(function(d) { return d.atom; });
+    var labels = node.append("text")
+	  .text(function(d) { return d.atom; })
+	  .style("visibility", "hidden");
+
+	node.on("mouseover", function(d) {
+		    d3.select(labels[0][d.index]).style("visibility","visible")
+		 })
+		.on("mouseout", function(d) {
+		    d3.select(labels[0][d.index]).style("visibility","hidden")
+		 });
 
 	function tick() {
 	link.selectAll("line")
