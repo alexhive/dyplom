@@ -100,6 +100,8 @@ def suitableYear(year, purchaseYear):
 	if None == purchaseYear:
 		return False
 
+	print(year, purchaseYear)
+	print("purchase year = ", purchaseYear.year)
 	if year == purchaseYear.year:
 		return True
 	else:
@@ -135,7 +137,7 @@ def UserdataToWinner(req):
 	winner_list = []
 	for node in w_list:
 		if None != node.purchase:
-			if suitableYear(year, node.purchase.purchase_publicated.year):
+			if suitableYear(year, node.purchase.purchase_publicated):
 				if None != node.purchase.user:
 					winner_list.append( node )
 
@@ -164,7 +166,7 @@ def WinnerToUser(req):
 	winner_list = []
 	for node in w_list:
 		if None != node.purchase:
-			if suitableYear(year, node.purchase.purchase_publicated.year):
+			if suitableYear(year, node.purchase.purchase_publicated):
 				if None != node.purchase.user:
 					winner_list.append( node )
 
