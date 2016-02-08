@@ -7,6 +7,8 @@ import json
 import mysite.models as models
 import serializers
 import json
+import tempfile
+import os
 from utils import Pointer
 
 AUTOCOMPLETE_LIMIT = 10
@@ -69,10 +71,12 @@ def findPoint(obj, pointers):
 
 def ceateResponse(winner_list):
 	response = { "nodes" : [], "links" : [] }
+	winnerForTable = []
 
 	for node in winner_list:
 		posWinner = findPoint(node.winner_name, response["nodes"])
 		if -1 == posWinner:
+			winnerForTable.append(node)
 			posWinner = len(response["nodes"])
 			response["nodes"].append( {"atom": node.winner_name, "size": 30, "color" : "#0000ff"} )
 
@@ -82,7 +86,6 @@ def ceateResponse(winner_list):
 			response["nodes"].append( {"atom": node.purchase.goods_name, "size": 20, "color" : "#00ff00"} )
 
 		posUserdata = findPoint(node.purchase.user.name, response["nodes"])
-		print("user index = ", posUserdata)
 		if -1 == posUserdata:
 			posUserdata = len(response["nodes"])
 			response["nodes"].append( {"atom": node.purchase.user.name, "size": 10, "color" : "#ff0000"} )
@@ -90,6 +93,7 @@ def ceateResponse(winner_list):
 		response["links"].append( { "bond" : 1, "source" : posWinner,  "target" : posPurchase } )
 		response["links"].append( { "bond" : 1, "source" : posPurchase,  "target" : posUserdata } )
 
+	response["table_file"] = saveWinnerTable(winnerForTable)
 	return response
 
 
@@ -212,3 +216,38 @@ def UserAutocomplete(req):
 def WinnerAutocomplete(req):
 	res_list = [ x.winner_name for x in list(models.Winner.objects.filter( winner_name__contains = req.GET["name"] ))[:AUTOCOMPLETE_LIMIT] ]
 	return HttpResponse(json.dumps(res_list), content_type="application/json")	
+
+def saveWinnerTable(winnerList):
+	res = "<table border=\"1\">"
+
+	for obj in winnerList:
+		res += "<tr>"
+		res += "<td>%s</td>" % obj.winner_name
+		res += "<td>%s</td>" % obj.winner_code
+		res += "<td>%s</td>" % obj.winner_phone
+		res += "<td>%s</td>" % obj.winner_address
+		res += "</tr>"
+
+	res += "</table>"
+
+	f = tempfile.NamedTemporaryFile("wb", delete = False)
+	f.write(res.encode('utf8'))
+	name = f.name
+	f.close()
+
+	return name
+
+@api_view(['GET',])
+def getWinnerTable(req):
+	file_name = req.GET["name"]
+
+	try:
+		f = open(file_name, "r")
+		content = f.read()
+		f.close()
+		os.remove(file_name)
+		return HttpResponse(content, content_type="html")
+	except:
+		print("Error ocqurence with file %s" % file_name)
+
+	return 	HttpResponse("Something went wrong", content_type="html")

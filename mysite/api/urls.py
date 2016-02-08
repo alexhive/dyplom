@@ -14,4 +14,5 @@ urlpatterns = [
     url(r'^winnerToConcreteUser/', views.WinnerToConcreteUser, name="WinnerToUser" ),
     url(r'^userAutocomplete/', views.UserAutocomplete, name="WinnerToUser" ),
 	url(r'^winnerAutocomplete/', views.WinnerAutocomplete, name="WinnerToUser" ),
+    url(r'^getTable/', views.getWinnerTable, name="getWinnerTable" ),
 ]
