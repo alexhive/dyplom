@@ -119,7 +119,7 @@ def UserdataToWinner(req):
 		year = None
 	print("YEAR = ", year)
 
-	userdata_id = [ x.user_id for x in list(models.Userdata.objects.filter( name__contains = req.GET["name"] )) ]
+	userdata_id = [ x.user_id for x in list(models.Userdata.objects.filter( name__icontains = req.GET["name"] )) ]
 	userdata_id_parent_sort = [ x.parent_id for x in list( models.UserdataSort.objects.filter( id__in = userdata_id ) ) ]
 	userdata_id_sort = [ x.id for x in list( models.UserdataSort.objects.filter( parent_id__in = userdata_id_parent_sort ) ) ]
 	print("userdata_id", len(userdata_id))
@@ -156,7 +156,7 @@ def WinnerToUser(req):
 		year = None
 	print("YEAR = ", year)
 	
-	winner_id = [ x.winner_id for x in list(models.Winner.objects.filter( winner_name__contains = req.GET["name"] )) ]
+	winner_id = [ x.winner_id for x in list(models.Winner.objects.filter( winner_name__icontains = req.GET["name"] )) ]
 	winner_id_parent_sort = [ x.parent_id for x in list( models.WinnerSort.objects.filter( id__in = winner_id ) ) ]
 	winner_id_sort = [ x.id for x in list( models.WinnerSort.objects.filter( parent_id__in = winner_id_parent_sort ) ) ]
 	print("winner_id = ", len(winner_id))
@@ -186,7 +186,7 @@ def WinnerToConcreteUser(req):
 	winer_name = req.GET["winner"]
 	user_name = req.GET["user"]
 	
-	winner_id = [ x.winner_id for x in list(models.Winner.objects.filter( winner_name__contains = winer_name )) ]
+	winner_id = [ x.winner_id for x in list(models.Winner.objects.filter( winner_name__icontains = winer_name )) ]
 	winner_id_parent_sort = [ x.parent_id for x in list( models.WinnerSort.objects.filter( id__in = winner_id ) ) ]
 	winner_id_sort = [ x.id for x in list( models.WinnerSort.objects.filter( parent_id__in = winner_id_parent_sort ) ) ]
 	print("winner_id = ", len(winner_id))
@@ -209,29 +209,45 @@ def WinnerToConcreteUser(req):
 
 @api_view(['GET',])
 def UserAutocomplete(req):
-	res_list = [ x.name for x in list(models.Userdata.objects.filter( name__contains = req.GET["name"] ))[:AUTOCOMPLETE_LIMIT] ]
+	print("Autocomplete", req.GET["name"])
+	if "" == req.GET["name"]:
+		return HttpResponse(json.dumps({}), content_type="application/json")	
+	
+	query = u"select distinct on (name) name, user_id from userdata where LOWER( name ) like '%%{0}%%' limit {1};".format(req.GET["name"].lower(), AUTOCOMPLETE_LIMIT)
+	print(query)
+	res_list = [ x.name for x in list(models.Userdata.objects.raw(query)) ]
 	return HttpResponse(json.dumps(res_list), content_type="application/json")	
 
 @api_view(['GET',])
 def WinnerAutocomplete(req):
-	res_list = [ x.winner_name for x in list(models.Winner.objects.filter( winner_name__contains = req.GET["name"] ))[:AUTOCOMPLETE_LIMIT] ]
+	if "" == req.GET["name"]:
+		return HttpResponse(json.dumps({}), content_type="application/json")
+		
+	query = u"select distinct on (winner_name) winner_name, winner_id from winner where LOWER( winner_name ) like '%%{0}%%' limit {1};".format(req.GET["name"].lower(), AUTOCOMPLETE_LIMIT)
+	print(query)
+
+	db_list = [ x.winner_name for x in list(models.Winner.objects.raw(query)) ]
+	res_list = []
+	for obj in db_list:
+		res_list.append( { "label" : obj, "value" : obj } )
+
+	print(res_list)
 	return HttpResponse(json.dumps(res_list), content_type="application/json")	
 
 def saveWinnerTable(winnerList):
-	res = "<table border=\"1\">"
-
+	res = []
 	for obj in winnerList:
-		res += "<tr>"
-		res += "<td>%s</td>" % obj.winner_name
-		res += "<td>%s</td>" % obj.winner_code
-		res += "<td>%s</td>" % obj.winner_phone
-		res += "<td>%s</td>" % obj.winner_address
-		res += "</tr>"
+		arr = []
+		arr.append(obj.winner_name)
+		arr.append(obj.winner_code)
+		arr.append(obj.winner_phone)
+		arr.append(obj.winner_address)
+		res.append(arr)
 
-	res += "</table>"
 
 	f = tempfile.NamedTemporaryFile("wb", delete = False)
-	f.write(res.encode('utf8'))
+	# f.write(res.encode('utf8'))
+	f.write( json.dumps({"data" : res}) )
 	name = f.name
 	f.close()
 
@@ -250,4 +266,4 @@ def getWinnerTable(req):
 	except:
 		print("Error ocqurence with file %s" % file_name)
 
-	return 	HttpResponse("Something went wrong", content_type="html")
+	return 	HttpResponse("Something went wrong", content_type="application/json")

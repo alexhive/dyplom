@@ -26,6 +26,15 @@
 </style>
 <body>
 
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js" charset="utf-8"></script>
+<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css" />
+
 <form method="POST" action="">
     {% csrf_token %}
     {{ form }}
@@ -34,10 +43,24 @@
 
 <div class="winnerTable"></div>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
-<script src="//code.jquery.com/jquery-1.10.2.js"></script>
-<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<table id="example" class="display" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Code</th>
+            <th>Phone</th>
+            <th>Address</th>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <th>Name</th>
+            <th>Code</th>
+            <th>Phone</th>
+            <th>Address</th>
+        </tr>
+    </tfoot>
+</table>
 
 <script type="text/javascript">
 
@@ -58,8 +81,6 @@ $( "#id_user" ).autocomplete({
                 success: function(data) {
                 	console.log ( data );
                 	response(data)
-
-
                 }
             })
         },
@@ -72,25 +93,20 @@ $( "#id_user" ).autocomplete({
 // autocomlete for winner
 $( "#id_winner" ).autocomplete({
   source: function(request, response) {
-  			console.log ("autocomplete");
-  			console.log ( $('#id_winner').val() );
-            $.ajax({
-                url: "http://127.0.0.1:8000/api/winnerAutocomplete/",
-                dataType: "json",
-                type: "get",
-                data: {
-                    name: $('#id_winner').val()
-                },
-                success: function(data) {
-                	console.log ( data );
-                	response(data)
-                }
-            })
+		console.log ( $('#id_winner').val() );
+    $.ajax({
+        url: "http://127.0.0.1:8000/api/winnerAutocomplete/",
+        dataType: "json",
+        type: "get",
+        data: {
+            name: $('#id_winner').val()
         },
-    minLength: 0,
-    scroll: true
-}).focus(function() {
-    $(this).autocomplete("search", "");
+        success: function(data) {
+        	response(data)
+        }
+    })
+  },
+  scroll: true
 });
 
 $.ajax({
@@ -113,21 +129,9 @@ $.ajax({
 })
 
 function showTable(filePath) {
-  $.ajax({
-    type: "GET",
-    contentType: "html",
-    url: 'http://127.0.0.1:8000/api/getTable/?name=' + filePath,
-    async: true,
-    data: "", 
-    success: function (data) {
-      console.log ("ajax table success");
-      $('.winnerTable').html(data);
-    },
-    error: function (result) {
-        console.log("AJAX table error")
-        console.log(result)
-    }
-  });
+  $('#example').DataTable( {
+    "ajax": 'http://127.0.0.1:8000/api/getTable/?name=' + filePath,
+  } );
 }
 
 // get table here
