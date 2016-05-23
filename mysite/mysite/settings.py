@@ -2,6 +2,7 @@
 
 import os
 
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -15,7 +16,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'alex',
+        'NAME': 'curs',
         'USER': 'postgres',
         'PASSWORD': 'W3lcome',
         'HOST': 'localhost',
@@ -127,8 +128,10 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
     'rest_framework',
+    'api',
+    'graphics',
     # Uncomment the next line to enable admin documentation:
-    # 'django.contrib.admindocs',
+    'django.contrib.admindocs'
 )
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
@@ -163,7 +166,7 @@ LOGGING = {
 }
 
 TEMPLATE_DIRS = (
-    os.path.join(PROJECT_DIR, 'html')
+    "/home/alex/pycharm/dyplom/mysite/html",
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.

@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, render
 from django.template import RequestContext
 from django import forms
 
-import mysite.models as models
+import models
 
 def index(request):
 	return HttpResponse("Hello, world. You're at the polls index.")

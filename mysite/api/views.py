@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import json
-import mysite.models as models
+import models
 import serializers
 import json
 import tempfile

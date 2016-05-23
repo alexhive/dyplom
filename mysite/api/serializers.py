@@ -1,7 +1,5 @@
 from rest_framework import serializers
-import mysite.models as models
-from django.forms import widgets
-import mysite.models as models
+import models
 
 class UserdataSerializer(serializers.ModelSerializer):
 	class Meta:
